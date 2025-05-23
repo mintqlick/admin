@@ -4,19 +4,31 @@ import { Resend } from "resend";
 
 export async function POST(req) {
   try {
+    
+
     const { email, password } = await req.json();
     if (!email || !password) {
-      return NextResponse.json("invalid credentials");
+      return NextResponse.json({
+        success: false,
+        message: "invalid credential",
+        status: 404,
+      });
     }
     const supabase = createClient();
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
       .eq("email", email)
+      .eq("admin", true)
       .single();
 
+
     if (error || !user) {
-      return NextResponse.json({ message: "invalid credential", status: 404 });
+      return NextResponse.json({
+        success: false,
+        message: "user not found",
+        status: 404,
+      });
     }
     const resend = new Resend(process.env.RESEND_API);
 
@@ -44,14 +56,24 @@ export async function POST(req) {
       });
     }
 
-     await supabase.from("code").insert({
-        code:""
-     })
+    const { date: uploadDate, error: upload_Error } = await supabase
+      .from("code")
+      .upsert({
+        code,
+        id: user.id,
+        full_name: user.name,
+      });
+    if (upload_Error) {
+      return NextResponse.json({
+        success: false,
+        status: 500,
+        message: upload_Error.error.message,
+      });
+    }
 
-
-    return NextResponse.json({ success: true, message: "" });
+    return NextResponse.json({ success: true, message: "code sent" });
   } catch (error) {
-    console.log(error.message);
+    
     return NextResponse.json({ success: false, message: error.message });
   }
 }

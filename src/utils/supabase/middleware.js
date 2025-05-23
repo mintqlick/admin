@@ -2,7 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
 export async function updateSession(request) {
+  const { pathname } = request.nextUrl;
   let supabaseResponse = NextResponse.next({ request });
+
+  // ✅ Allow all API routes without session/auth check
+  if (pathname.startsWith("/api/")) {
+    return supabaseResponse;
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -26,30 +32,38 @@ export async function updateSession(request) {
       },
     }
   );
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let pathname = request.nextUrl.pathname
-
-  // Normalize pathname by removing trailing slash except for root
-  if (pathname.length > 1 && pathname.endsWith('/')) {
-    pathname = pathname.slice(0, -1)
+  // If not logged in → allow only `/`
+  if (!user) {
+    if (pathname !== "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
   }
 
-  const publicRoutes = ["/", "/sign-in", "/sign-up","/recover","/api/cron/expire"];
+  // Check if user is admin
+  const { data: userData, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id)
+    .eq("admin", true)
+    .single();
 
-  if (!user && !publicRoutes.includes(pathname)) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/sign-in'
-    return NextResponse.redirect(url)
+  if (error || !userData?.admin) {
+    if (pathname !== "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
   }
 
-  if (user && (pathname === '/sign-in' || pathname === '/sign-up')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
-  }
-
+  // Allow access for admin
   return supabaseResponse;
 }
