@@ -20,18 +20,34 @@ export async function POST(req) {
     }
     const resend = new Resend(process.env.RESEND_API);
 
-    const to = "ademolapamilerin51@gmail.com";
-    const subject = "verify your login";
-    const text = "my name is Ademol";
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-   const result = await resend.emails.send({
-      from: "adeakanfea@gmail.com",
+    const to = user?.email;
+    const subject = "verify your Admin login";
+
+    const result = await resend.emails.send({
+      from: "admin@admin.nodalcircles.com",
       to: [to],
       subject,
-      html: "<p>Congrats on sending your <strong>first email</strong>!</p>",
+      html: `<h2>Welcome to nodal circle admin</h2>
+        <br></br>
+        ${code}
+      
+      `,
     });
 
-    console.log(result)
+    if (result.error) {
+      return NextResponse.json({
+        success: false,
+        status: 500,
+        message: result.error.message,
+      });
+    }
+
+     await supabase.from("code").insert({
+        code:""
+     })
+
 
     return NextResponse.json({ success: true, message: "" });
   } catch (error) {
