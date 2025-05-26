@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, History, Users, User, LogOut } from "lucide-react";
+import {  User, LogOut, Clock, LayoutGrid } from "lucide-react";
 import Box from "../Box/Box";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -8,9 +8,9 @@ import clsx from "clsx";
 import { createClient } from "@/utils/supabase/super-base-client";
 
 const navItems = [
-  { label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-  { label: "Management", icon: History, href: "/dashboard/management" },
-  { label: "Notificatiom", icon: Users, href: "/dashboard/notification" },
+  { label: "Overview", icon: LayoutGrid, href: "/dashboard",src:"/images/Icons.png" },
+  { label: "Management", icon: Clock, href: "/dashboard/management",src:"/images/icon2.png" },
+  { label: "Notificatiom", icon: User, href: "/dashboard/notification",src:"/images/Icons3.png" },
 ];
 
 export default function Sidebar() {
