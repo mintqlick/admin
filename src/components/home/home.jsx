@@ -98,15 +98,15 @@ const HomePage = () => {
 
   return (
     <div className="w-full relative flex flex-col justify-center items-center h-screen">
-      <div className="absolute w-full top-0 z-10 h-screen">
+      <div className="absolute w-full top-0 z-10 h-[100%]">
         <Image
           src={"/images/Verification.png"}
-          height={4080}
-          width={4000}
-          className="object-fit w-full h-screen"
+          height={1080}
+          width={1000}
+          className="object-cover w-full h-[full]"
         />
       </div>
-      <div className="w-[45%] xl:w-[50%] 2xl:w-[40%] flex flex-col bg-[#EDF2FC] rounded-2xl py-12 relative z-20 px-8 gap-4 max-w-[45rem]">
+      <div className="w-[45%] xl:w-[50%] 2xl:w-[40%] flex flex-col bg-[#EDF2FC] rounded-2xl py-12 relative z-20 px-8 gap-4 max-w-[45rem]  top-[10%]">
         {!showcode && !showSuccess && (
           <>
             <h2 className="flex justify-center items-center font-bold w-full text-[#05132B] text-bold text-[30px]">

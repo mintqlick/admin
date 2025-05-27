@@ -4,9 +4,10 @@ import Box from "@/components/Box/Box";
 import SendersComponent from "@/components/management/giver";
 import ReceiverComponent from "@/components/management/receiver";
 import { createClient } from "@/utils/supabase/client";
-import { Check,  Users } from "lucide-react";
+import { Check, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const DashBoardPage = () => {
   let [receiver_count, setReceiverCount] = useState(0);
@@ -16,7 +17,6 @@ const DashBoardPage = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [merged, setMerged] = useState(false);
-  const router = useRouter();
 
   const giverCount = (val) => {
     setGiverCount(val);
@@ -49,9 +49,31 @@ const DashBoardPage = () => {
 
     for (const element of giver || []) {
       if (element) {
+        const {
+          data: { amount_remaining },
+          error: fetchErr,
+        } = await supabase
+          .from("merge_givers")
+          .select("amount_remaining")
+          .eq("id", element.id)
+          .eq("matched", false)
+          .single();
+
+        if (fetchErr) {
+          console.error("Failed to fetch giver amount:", fetchErr.message);
+        }
+
+        if (amount_remaining < element.amount) {
+          console.warn("Insufficient amount for giver:", element);
+          continue; // Skip this giver if insufficient amount
+        }
+
         const { error } = await supabase
           .from("merge_givers")
-          .update({ matched: true })
+          .update({
+            matched: +amount_remaining - +element.amount === 0 ? true : false,
+            amount_remaining: +amount_remaining - +element.amount,
+          })
           .eq("id", element.id);
 
         if (error) console.error("Failed to update giver:", error.message);
@@ -60,12 +82,42 @@ const DashBoardPage = () => {
       }
     }
 
-    const { error: err } = await supabase
+    const { data: rcvData, error: err } = await supabase
       .from("merge_receivers")
-      .update({ matched: true })
-      .eq("id", receiver);
+      .select("amount_remaining")
+      .eq("id", receiver)
+      .eq("matched", false)
+      .single();
 
     if (err) console.error("Failed to update giver:", err.message);
+
+    // loop through giver amount and see if it is greater than receiver amount
+    if (rcvData.amount_remaining > totalAmt) {
+      const { error: err } = await supabase
+        .from("merge_receivers")
+        .update({
+          matched: false,
+          amount_remaining: rcvData.amount_remaining - totalAmt,
+        })
+        .eq("id", receiver);
+      if (err) console.error("Failed to update giver:", err.message);
+    } else if (rcvData.amount_remaining === totalAmt) {
+      const { error: err } = await supabase
+        .from("merge_receivers")
+        .update({
+          matched: true,
+          amount_remaining: 0,
+          status: "pending",
+        })
+        .eq("id", receiver);
+      if (err) console.error("Failed to update giver:", err.message);
+    } else {
+      toast.warning(
+        "Receiver amount is less than giver amount, please try again with a different receiver"
+      );
+      setLoading(false);
+      return;
+    }
 
     giver.forEach(async (element) => {
       const { error: mtErr } = await supabase.from("merge_matches").insert({
@@ -80,7 +132,6 @@ const DashBoardPage = () => {
     ? giver.reduce((sum, el) => sum + parseFloat(el.amount), 0)
     : 0;
 
-  console.log(giver);
   return (
     <div className="w-full flex flex-col relative">
       <div className="w-full flex justify-center gap-6">

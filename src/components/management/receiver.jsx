@@ -64,7 +64,9 @@ const ReceiverComponent = ({ receiverCount, setReceiverData }) => {
       const { data, error } = await supabase
         .from("merge_receivers")
         .select("*")
-        .eq("matched", false);
+        .eq("matched", false)
+        .gt("amount_remaining", 0)
+        .order("created_at", { ascending: false });
       if (error) {
         console.error(error);
         return;

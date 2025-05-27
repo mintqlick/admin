@@ -4,7 +4,7 @@ import { Dot } from "lucide-react";
 import { useState } from "react";
 
 const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
-  const [count, setCount] = useState(+item.original_amount);
+  const [count, setCount] = useState(+item.amount_remaining);
   const [checked, setChecked] = useState(false);
 
   const AddCount = () => {
@@ -49,7 +49,7 @@ const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
       </div>
 
       <div className="w-3/12 flex justify-center items-center text-[#878E99]">
-        {item?.original_amount}
+        {item?.amount_remaining} USDT
       </div>
 
       <div className="w-2/12 flex gap-2 justify-center items-center">
@@ -65,7 +65,7 @@ const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
             type="number"
             inputMode="decimal"
             step="0.1"
-            max={item.original_amount}
+            max={item?.amount_remaining}
             min={1}
             value={count}
             onChange={handleInputChange}

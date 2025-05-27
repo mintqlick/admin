@@ -81,7 +81,10 @@ const SenderComponent = ({ giveCount, setGiverData }) => {
       const { data, error } = await supabase
         .from("merge_givers")
         .select("*")
-        .eq("matched", false);
+        .eq("matched", false)
+        .gt("amount_remaining", 0)
+        .order("created_at", { ascending: false });
+
       if (error) {
         console.log(error);
       }
