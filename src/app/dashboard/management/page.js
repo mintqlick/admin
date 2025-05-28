@@ -73,6 +73,7 @@ const DashBoardPage = () => {
           .update({
             matched: +amount_remaining - +element.amount === 0 ? true : false,
             amount_remaining: +amount_remaining - +element.amount,
+            confirmed: true,
           })
           .eq("id", element.id);
 
@@ -97,6 +98,7 @@ const DashBoardPage = () => {
         .from("merge_receivers")
         .update({
           matched: false,
+          confirmed:true,
           amount_remaining: rcvData.amount_remaining - totalAmt,
         })
         .eq("id", receiver);
@@ -107,6 +109,7 @@ const DashBoardPage = () => {
         .update({
           matched: true,
           amount_remaining: 0,
+          confirmed:true,
           status: "pending",
         })
         .eq("id", receiver);
