@@ -1,14 +1,14 @@
 import Box from "@/components/Box/Box";
+import StartingDashboard from "@/components/dashboard-home/starting";
+import TransactionQue from "@/components/dashboard-home/transaction-que";
+import UserSummary from "@/components/dashboard-home/user-summary";
 
 const DashBoardPage = () => {
   return (
     <div className="w-full flex flex-col">
-      <div className="w-full flex justify-center">
-        <Box className="flex bg-[#EDF2FC] flex-col justify-between">
-          <span>Total Users Awaiting Matching</span>
-          <span>900</span>
-        </Box>
-      </div>
+      <StartingDashboard />
+      <TransactionQue />
+      <UserSummary />
     </div>
   );
 };
