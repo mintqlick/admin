@@ -123,9 +123,8 @@ const StartingDashboard = () => {
     const fetchUncompletedMerges = async () => {
       const supabase = createClient();
       setReceiverQueLoading(true);
-      const { data, error } = await supabase.rpc(
-        "weekly_uncompleted_receiver_merges"
-      );
+      const { data, error } = await supabase.from("merge_receivers")
+      .eq();
 
       if (error) {
         console.error("Error fetching weekly merge data:", error.message);

@@ -69,8 +69,10 @@ const UsersPage = ({ id }) => {
   const [blockAccLoading, setBlockAccLoading] = useState(false);
 
   const [updateLoading, setUpdateLoading] = useState(false);
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+
   const [dataVal, setDataVal] = useState([]);
+
+  const totalPages = Math.ceil(dataVal.length / itemsPerPage);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -191,12 +193,7 @@ const UsersPage = ({ id }) => {
       return el.confirmed === true && el.status === "pending";
     });
 
-     const filtered2 =
-    dataVal &&
-    dataVal.filter((el) => {
-      return el.confirmed === false && el.status === "waiting";
-    });
-  console.log(filtered);
+ 
 
   return (
     <div className="w-full flex gap-4">
@@ -394,7 +391,8 @@ const UsersPage = ({ id }) => {
                 Recommitment
               </span>
               <span className="w-full font-semibold text-[#05132B] text-center">
-               {filtered2.length > 0 ? filtered2[0].original_amount : "N/A"} USD
+                {filtered.length > 1 ? filtered[0].original_amount : "N/A"}{" "}
+                USD
               </span>
               <span className="w-full flex justify-end items-center">
                 <span className="w-auto bg-[#FFF1BA] px-3 py-1 text-[#6E5801] font-semibold flex items-center gap-1">
