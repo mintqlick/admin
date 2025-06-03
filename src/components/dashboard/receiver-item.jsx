@@ -12,10 +12,10 @@ const UserItem = ({ item, selected, onSelect }) => {
           onChange={() => onSelect(item.id)}
           className="border-[#878E99] outline-[#878E99] outline-2 h-[20px] w-[20px] cursor-pointer"
         />
-        {item?.id}
+        {item?.user_id}
       </div>
       <div className="w-3/12 flex justify-center items-center text-[#878E99]">
-        {item?.amount_remaining }
+        {item?.amount_remaining}
       </div>
       <div className="w-2/12 flex justify-center items-center">
         <span className="capitalize text-[#6E5801] rounded-2xl bg-[#FFF1BA] flex justify-start items-center w-[8rem] font-semibold text-[15px]">
