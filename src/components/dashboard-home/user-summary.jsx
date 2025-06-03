@@ -13,6 +13,7 @@ const UserSummary = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [user, setUser] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -58,12 +59,12 @@ const UserSummary = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-GB");
   };
-
   useEffect(() => {
+    if (search.trim()) return; // Don't run default fetch if searching
+
     const Executioner = async () => {
       setLoading(true);
       const supabase = createClient();
-
       const from = (currentPage - 1) * pageSize;
       const to = from + pageSize - 1;
 
@@ -97,7 +98,66 @@ const UserSummary = () => {
     };
 
     Executioner();
-  }, [currentPage]);
+  }, [currentPage, search]);
+
+  const inputChanged = async (event) => {
+    const value = event.target.value;
+    setSearch(value);
+
+    if (!value.trim()) {
+      setCurrentPage(1); // Reset to first page to reload default list
+      return;
+    }
+
+    const supabase = createClient();
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value
+      );
+
+    setLoading(true);
+
+    try {
+      let usersRes;
+      if (isUUID) {
+        usersRes = await supabase
+          .from("users")
+          .select("*", { count: "exact" })
+          .eq("id", value);
+      } else {
+        usersRes = await supabase
+          .from("users")
+          .select("*", { count: "exact" })
+          .ilike("name", `%${value}%`);
+      }
+
+      const { data: users, count, error } = usersRes;
+
+      const { data: counts, error: errorVal } = await supabase.rpc(
+        "user_merge_giver_counts"
+      );
+
+      if (error || errorVal || !users || !counts) {
+        console.error(error || errorVal);
+        setUser([]);
+        setLoading(false);
+        return;
+      }
+
+      const merged = users.map((user) => {
+        const match = counts.find((item) => item.user_id === user.id);
+        return { ...user, ...match };
+      });
+
+      setUser(merged);
+      setTotalPages(Math.ceil((count || 1) / pageSize));
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setUser([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="w-full flex flex-col gap-4 mt-6">
@@ -106,6 +166,8 @@ const UserSummary = () => {
         <span className="w-[60%] flex items-center gap-3 border border-[#98AAC8] rounded-3xl py-3 px-5">
           <SearchIcon size={20} className="text-[#878E99] cursor-pointer" />
           <input
+            value={search}
+            onChange={inputChanged}
             placeholder="Search Email/name"
             className="w-full placeholder:text-[#878E99] outline-none border-0"
           />

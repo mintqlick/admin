@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
@@ -11,6 +11,7 @@ const TransactionQue = () => {
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
+  const [search, setSearch] = useState("");
 
   const goToPage = (page) => {
     setCurrentPage(page);
@@ -52,6 +53,41 @@ const TransactionQue = () => {
     );
   };
 
+  const SearchValChanged = async (event) => {
+    const inputVal = event.target.value;
+    setSearch(inputVal);
+
+    // Exit early if input is not a valid UUID
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    if (!uuidRegex.test(inputVal)) {
+      setTxnData([]);
+      console.error("Invalid UUID format");
+      return;
+    }
+
+    const supabase = createClient();
+
+    try {
+      const { data, count, error } = await supabase
+        .from("merge_matches")
+        .select("*", { count: "exact" })
+        .eq("id", inputVal)
+        .order("matched_at", { ascending: true })
+        .range(0, 10);
+
+      if (error) {
+        console.error("Supabase error:", error.message);
+      }
+
+      setTxnData(data || []);
+      console.log("Search result:", data);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -73,9 +109,10 @@ const TransactionQue = () => {
 
       setLoading(false);
     };
-
-    fetchData();
-  }, [currentPage]);
+    if (search === "") {
+      fetchData();
+    }
+  }, [currentPage, search]);
 
   return (
     <div className="w-full flex flex-col gap-4 mt-6">
@@ -85,6 +122,8 @@ const TransactionQue = () => {
           <SearchIcon size={20} className="text-[#878E99] cursor-pointer" />
           <input
             placeholder="Search Email/name"
+            value={search}
+            onChange={SearchValChanged}
             className="w-full placeholder:text-[#878E99] outline-none border-0"
           />
         </span>
