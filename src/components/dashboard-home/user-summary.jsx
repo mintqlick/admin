@@ -110,20 +110,20 @@ const UserSummary = () => {
     }
 
     const supabase = createClient();
-    const isUUID =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        value
-      );
+    const isUUID = /^NC-[0-9a-f]{8}$/i.test(value);
 
     setLoading(true);
 
     try {
       let usersRes;
       if (isUUID) {
+        const val =
+          value.toString().includes("-") && value.toString().split("-")[1];
+
         usersRes = await supabase
           .from("users")
           .select("*", { count: "exact" })
-          .eq("id", value);
+          .ilike("user_id", val);
       } else {
         usersRes = await supabase
           .from("users")
