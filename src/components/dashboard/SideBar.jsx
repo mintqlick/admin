@@ -1,12 +1,13 @@
 "use client";
 
-import { User, LogOut, Clock, LayoutGrid, icons } from "lucide-react";
+import { User, LogOut, Clock, LayoutGrid, icons, LogIn } from "lucide-react";
 import Box from "../Box/Box";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { createClient } from "@/utils/supabase/super-base-client";
 import Image from "next/image";
+import { useState } from "react";
 
 const navItems = [
   {
@@ -33,11 +34,20 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [cleanLoading, setCleanLoading] = useState(false);
 
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.replace("/sign-in");
+  };
+
+  const CleanUp = async () => {
+    setCleanLoading(true);
+
+    const result = await fetch("api/cleaner");
+    const values = await result.json();
+    setCleanLoading(false);
   };
 
   return (
@@ -52,7 +62,6 @@ export default function Sidebar() {
 
             return (
               <Link
-
                 href={item.href}
                 key={item.label}
                 className={clsx(
@@ -90,10 +99,18 @@ export default function Sidebar() {
             );
           })}
         </div>
-       
 
         {/* Logout */}
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 flex flex-col  gap-16">
+          <button
+            disabled={cleanLoading}
+            onClick={CleanUp}
+            className="flex items-center gap-2 text-blue-500 text-sm font-medium hover:bg-blue-100 px-3 py-2 w-full rounded-lg transition disabled:cursor-not-allowed "
+          >
+            <LogIn className="w-5 h-5" />
+            <span>Clean Up</span>
+          </button>
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 text-red-500 text-sm font-medium hover:bg-red-100 px-3 py-2 w-full rounded-lg transition"
