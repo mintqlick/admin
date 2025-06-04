@@ -1,16 +1,32 @@
 "use client";
 
-import {  User, LogOut, Clock, LayoutGrid } from "lucide-react";
+import { User, LogOut, Clock, LayoutGrid, icons } from "lucide-react";
 import Box from "../Box/Box";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { createClient } from "@/utils/supabase/super-base-client";
+import Image from "next/image";
 
 const navItems = [
-  { label: "Overview", icon: LayoutGrid, href: "/dashboard",src:"/images/Icons.png" },
-  { label: "Management", icon: Clock, href: "/dashboard/management",src:"/images/icon2.png" },
-  { label: "Notificatiom", icon: User, href: "/dashboard/notification",src:"/images/Icons3.png" },
+  {
+    label: "Overview",
+    icon: LayoutGrid,
+    href: "/dashboard",
+    src: "/images/Icons.png",
+  },
+  {
+    label: "Management",
+    icon: Clock,
+    href: "/dashboard/management",
+    src: "/images/icon2.png",
+  },
+  {
+    label: "Help",
+    icon: null,
+    href: "http://T.me/Nodalcirclessupport",
+    src: "/images/telegram.png",
+  },
 ];
 
 export default function Sidebar() {
@@ -36,6 +52,7 @@ export default function Sidebar() {
 
             return (
               <Link
+
                 href={item.href}
                 key={item.label}
                 className={clsx(
@@ -50,17 +67,30 @@ export default function Sidebar() {
                 {isActive && (
                   <div className="absolute right-0 top-2 bottom-2 w-1 bg-[#1860d9] rounded-r-md" />
                 )}
-                <Icon
-                  className={clsx(
-                    "w-5 h-5 transition-colors",
-                    isActive ? "text-[#1860d9]" : "group-hover:text-[#1860d9]"
-                  )}
-                />
+                {item.icon && (
+                  <Icon
+                    className={clsx(
+                      "w-5 h-5 transition-colors",
+                      isActive ? "text-[#1860d9]" : "group-hover:text-[#1860d9]"
+                    )}
+                  />
+                )}
+
+                {!item.icon && (
+                  <Image
+                    src={item.src}
+                    alt={item.label}
+                    width={24}
+                    height={24}
+                    className="object-contain"
+                  />
+                )}
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </div>
+       
 
         {/* Logout */}
         <div className="px-4 pb-4">
@@ -75,38 +105,6 @@ export default function Sidebar() {
       </Box>
 
       {/* Bottom tab nav for small screens only */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#EDF2FC] border-t border-gray-200 z-50 md:hidden">
-        <div className="flex justify-around items-center h-14">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-
-            return (
-              <Link
-                href={item.href}
-                key={item.label}
-                className={clsx(
-                  "flex flex-col items-center justify-around  text-sm transition",
-                  isActive
-                    ? "text-[#1860d9]"
-                    : "text-gray-500 hover:text-[#1860d9]"
-                )}
-              >
-                <Icon className="w-5 h-5 mb-1" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-          {/* Logout for small screen */}
-          <Link
-            href="/logout"
-            className="flex flex-col items-center justify-center text-xs text-red-500 hover:text-[#1860d9]"
-          >
-            <LogOut className="w-5 h-5 mb-1" />
-            <span>Logout</span>
-          </Link>
-        </div>
-      </div>
     </>
   );
 }

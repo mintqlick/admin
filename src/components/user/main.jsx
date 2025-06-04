@@ -187,13 +187,15 @@ const UsersPage = ({ id }) => {
     window.location.reload();
   };
 
+  
+
   const filtered =
     dataVal &&
     dataVal.filter((el) => {
-      return el.confirmed === true && el.status === "pending";
+      return  el.confirmed === true && el.status === "waiting"||el.status === "pending";
     });
 
- 
+    console.log(filtered)
 
   return (
     <div className="w-full flex gap-4">
@@ -209,9 +211,9 @@ const UsersPage = ({ id }) => {
           {userAcc && (
             <div className="w-full flex  items-center">
               <span className="text-3xl text-white flex justify-center items-center w-[6rem] h-[6rem] rounded-full bg-[#05132B] font-semibold">
-                {userAcc.name.split(" ")[0][0] +
+                {userAcc?.name.split(" ")[0][0] +
                   "" +
-                  userAcc.name.split(" ")[1][0]}
+                  userAcc?.name.split(" ")[1][0]}
               </span>
               <span className="text-2xl font-bold text-[#05132B] ml-4">
                 <h2 className="text-3xl font-bold">{userAcc.name}</h2>
@@ -377,6 +379,8 @@ const UsersPage = ({ id }) => {
               <span className="w-full font-semibold text-[#05132B]">
                 Commitment
               </span>
+
+              {console.log(filtered)}
               <span className="w-full font-semibold text-[#05132B] text-center">
                 {filtered.length > 0 ? filtered[0].original_amount : "N/A"} USD
               </span>
@@ -391,8 +395,7 @@ const UsersPage = ({ id }) => {
                 Recommitment
               </span>
               <span className="w-full font-semibold text-[#05132B] text-center">
-                {filtered.length > 1 ? filtered[0].original_amount : "N/A"}{" "}
-                USD
+                {filtered.length > 1 ? filtered[0].original_amount : "N/A"} USD
               </span>
               <span className="w-full flex justify-end items-center">
                 <span className="w-auto bg-[#FFF1BA] px-3 py-1 text-[#6E5801] font-semibold flex items-center gap-1">
@@ -443,7 +446,7 @@ const UsersPage = ({ id }) => {
                 </span>
                 <span className="w-full text-center">commit</span>
                 <span className="w-full text-center">
-                  {txn.amount_remaining}
+                  {txn.original_amount}
                 </span>
                 <span
                   className={`w-full text-center ${txn.status === "completed" ? "text-green-500" : txn.status === "pending" ? "text-yellow-300" : txn.status === "waiting" ? "text-blue-400" : "text-red-400"}`}
