@@ -45,7 +45,7 @@ const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
           onChange={handleCheckbox}
           className="border-[#878E99] outline-[#878E99] outline-2 h-[20px] w-[20px] cursor-pointer"
         />
-        {item?.id}
+        NC-{item?.user_id.split("-")[0]}
       </div>
 
       <div className="w-3/12 flex justify-center items-center text-[#878E99]">

@@ -12,7 +12,7 @@ const UserItem = ({ item, selected, onSelect }) => {
           onChange={() => onSelect(item.id)}
           className="border-[#878E99] outline-[#878E99] outline-2 h-[20px] w-[20px] cursor-pointer"
         />
-        {item?.user_id}
+        NC-{item?.user_id.split("-")[0]}
       </div>
       <div className="w-3/12 flex justify-center items-center text-[#878E99]">
         {item?.amount_remaining}
