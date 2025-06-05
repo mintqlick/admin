@@ -187,15 +187,18 @@ const UsersPage = ({ id }) => {
     window.location.reload();
   };
 
-  
+  console.log(dataVal);
 
   const filtered =
     dataVal &&
     dataVal.filter((el) => {
-      return  el.confirmed === true && el.status === "waiting"||el.status === "pending";
+      return (
+        el.confirmed === true &&
+        (el.status === "waiting" || el.status === "pending")
+      );
     });
 
-    console.log(filtered)
+  console.log(filtered);
 
   return (
     <div className="w-full flex gap-4">
@@ -382,7 +385,7 @@ const UsersPage = ({ id }) => {
 
               {console.log(filtered)}
               <span className="w-full font-semibold text-[#05132B] text-center">
-                {filtered.length > 0 ? filtered[0].original_amount : "N/A"} USD
+                {filtered.length > 0 ? filtered[0].original_amount||filtered[0].amount : "N/A"} USD
               </span>
               <span className="w-full text-green-600 font-semibold flex justify-end items-center">
                 <span className="w-auto bg-[#DFF6E4] px-3 py-1 text-[#05132B] font-semibold flex items-center gap-1">
@@ -395,7 +398,7 @@ const UsersPage = ({ id }) => {
                 Recommitment
               </span>
               <span className="w-full font-semibold text-[#05132B] text-center">
-                {filtered.length > 1 ? filtered[0].original_amount : "N/A"} USD
+                {filtered.length > 1 ? filtered[1].original_amount||filtered[1].amount : "N/A"} USD
               </span>
               <span className="w-full flex justify-end items-center">
                 <span className="w-auto bg-[#FFF1BA] px-3 py-1 text-[#6E5801] font-semibold flex items-center gap-1">
