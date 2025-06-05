@@ -211,7 +211,7 @@ const UserSummary = () => {
                 {user.name}
               </span>
               <span className="text-[#878E99] font-semibold text-[16px] w-full text-center">
-                {user.id}
+                NC-{user?.id.split("-")[0]}
               </span>
               <span className="text-[#878E99] font-semibold text-[16px] w-full text-center">
                 {formatDate(user.created_at)}
