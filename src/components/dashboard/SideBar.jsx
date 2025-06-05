@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { createClient } from "@/utils/supabase/super-base-client";
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const navItems = [
   {
@@ -48,6 +49,7 @@ export default function Sidebar() {
     const result = await fetch("api/cleaner");
     const values = await result.json();
     setCleanLoading(false);
+    toast.success("db cleaned up");
   };
 
   return (

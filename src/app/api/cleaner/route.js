@@ -156,15 +156,24 @@ export async function GET(request) {
   ).toISOString();
 
   // 1. Delete unmatched contributions after 24hrs
-  const { error: deleteError } = await supabase
+  const { data: dltedRes, error: deleteError } = await supabase
     .from("merge_givers")
     .delete()
     .lt("expires_at", now.toISOString())
     .eq("status", "waiting")
-    .eq("confirmed", false);
+    .eq("confirmed", false)
+    .select("*");
 
   if (deleteError) {
     return NextResponse.json({ error: deleteError.message }, { status: 400 });
+  }
+
+  // block user that did this
+  for (const users of dltedRes) {
+    await supabase
+      .from("users")
+      .update({ blocked: true })
+      .eq("id", users.user_id);
   }
 
   // 2. Re-enter unmatched receivers to queue with new expiry time
@@ -198,7 +207,6 @@ export async function GET(request) {
   const withImageUrl = matches.filter((el) => el.image_url);
   const withoutImageUrl = matches.filter((el) => !el.image_url);
 
-
   // 4. Extend expiry for matches with image_url
   for (const match of withImageUrl) {
     const { error: updateErr } = await supabase
@@ -212,88 +220,103 @@ export async function GET(request) {
   }
 
   // 5. For matches without image_url, revert the match
-    for (const match of withoutImageUrl) {
-      const { receiver_id, giver_id, matched_amount } = match;
+  for (const match of withoutImageUrl) {
+    const { receiver_id, giver_id, matched_amount } = match;
 
-      // a. Fetch receiver
-      const { data: receiverData, error: receiverErr } = await supabase
-        .from("merge_receivers")
-        .select("*")
-        .eq("id", receiver_id)
-        .single();
+    // a. Fetch receiver
+    const { data: receiverData, error: receiverErr } = await supabase
+      .from("merge_receivers")
+      .select("*")
+      .eq("id", receiver_id)
+      .single();
 
-      if (receiverErr || !receiverData) {
-        return NextResponse.json(
-          { error: receiverErr?.message || "Receiver not found" },
-          { status: 400 }
-        );
-      }
-
-      // b. Update receiver
-      const { error: receiverUpdateErr } = await supabase
-        .from("merge_receivers")
-        .update({
-          amount_remaining: receiverData.amount_remaining + matched_amount,
-          matched: false,
-          confirmed: false,
-          status: "waiting",
-          expires_at: twentyFourHoursLater,
-        })
-        .eq("id", receiver_id);
-
-      if (receiverUpdateErr) {
-        return NextResponse.json(
-          { error: receiverUpdateErr.message },
-          { status: 400 }
-        );
-      }
-
-      // c. Fetch giver
-      const { data: giverData, error: giverErr } = await supabase
-        .from("merge_givers")
-        .select("*")
-        .eq("id", giver_id)
-        .single();
-
-      if (giverErr || !giverData) {
-        return NextResponse.json(
-          { error: giverErr?.message || "Giver not found" },
-          { status: 400 }
-        );
-      }
-
-      // d. Update giver
-      const { error: giverUpdateErr } = await supabase
-        .from("merge_givers")
-        .update({
-          amount_remaining: giverData.amount_remaining + matched_amount,
-          matched: false,
-          confirmed: false,
-          status: "waiting",
-          expires_at: twentyFourHoursLater,
-        })
-        .eq("id", giver_id);
-
-      if (giverUpdateErr) {
-        return NextResponse.json(
-          { error: giverUpdateErr.message },
-          { status: 400 }
-        );
-      }
-
-      // e. Delete match
-      const { error: deleteMatchErr } = await supabase
-        .from("merge_matches")
-        .delete()
-        .eq("id", match.id);
-
-      if (deleteMatchErr) {
-        return NextResponse.json(
-          { error: deleteMatchErr.message },
-          { status: 400 }
-        );
-      }
+    if (receiverErr || !receiverData) {
+      return NextResponse.json(
+        { error: receiverErr?.message || "Receiver not found" },
+        { status: 400 }
+      );
     }
+
+    // b. Update receiver
+    const { error: receiverUpdateErr } = await supabase
+      .from("merge_receivers")
+      .update({
+        amount_remaining: receiverData.amount_remaining + matched_amount,
+        matched: false,
+        confirmed: false,
+        status: "waiting",
+        expires_at: twentyFourHoursLater,
+      })
+      .eq("id", receiver_id);
+
+    if (receiverUpdateErr) {
+      return NextResponse.json(
+        { error: receiverUpdateErr.message },
+        { status: 400 }
+      );
+    }
+
+    // c. Fetch giver
+    const { data: giverData, error: giverErr } = await supabase
+      .from("merge_givers")
+      .select("*")
+      .eq("id", giver_id)
+      .single();
+
+    if (giverErr || !giverData) {
+      return NextResponse.json(
+        { error: giverErr?.message || "Giver not found" },
+        { status: 400 }
+      );
+    }
+
+    // d. Update giver
+    const { error: giverUpdateErr } = await supabase
+      .from("merge_givers")
+      .update({
+        amount_remaining: giverData.amount_remaining + matched_amount,
+        matched: false,
+        confirmed: false,
+        status: "waiting",
+        expires_at: twentyFourHoursLater,
+      })
+      .eq("id", giver_id);
+
+    if (giverUpdateErr) {
+      return NextResponse.json(
+        { error: giverUpdateErr.message },
+        { status: 400 }
+      );
+    }
+
+    // block the giver user
+    const { error: giverUpdateBlockErr } = await supabase
+      .from("users")
+      .update({
+        blocked: true,
+      })
+      .eq("user_id", giverData.user_id);
+
+    if (giverUpdateBlockErr) {
+      return NextResponse.json(
+        { error: giverUpdateBlockErr.message },
+        { status: 400 }
+      );
+    }
+
+    // e. Delete match
+    const { error: deleteMatchErr } = await supabase
+      .from("merge_matches")
+      .delete()
+      .eq("id", match.id);
+
+    if (deleteMatchErr) {
+      return NextResponse.json(
+        { error: deleteMatchErr.message },
+        { status: 400 }
+      );
+    }
+  }
 
   return NextResponse.json({ message: "Cleanup completed successfully." });
 }
