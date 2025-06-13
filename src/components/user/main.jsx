@@ -196,7 +196,6 @@ const UsersPage = ({ id }) => {
     if (id) fetchReferralsWithUsers();
   }, [id]);
 
-  console.log(data);
 
   useEffect(() => {
     const executioner = async () => {
@@ -249,7 +248,6 @@ const UsersPage = ({ id }) => {
     window.location.reload();
   };
 
-  console.log(dataVal);
 
   const filtered =
     dataVal &&
