@@ -1,6 +1,14 @@
 "use client";
 
-import { User, LogOut, Clock, LayoutGrid, icons, LogIn } from "lucide-react";
+import {
+  User,
+  LogOut,
+  Clock,
+  LayoutGrid,
+  icons,
+  LogIn,
+  Bell,
+} from "lucide-react";
 import Box from "../Box/Box";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,10 +32,10 @@ const navItems = [
     src: "/images/icon2.png",
   },
   {
-    label: "Help",
-    icon: null,
-    href: "http://T.me/Nodalcirclessupport",
-    src: "/images/telegram.png",
+    label: "Notification",
+    icon: Bell,
+    href: "/notification",
+    src: "",
   },
 ];
 
