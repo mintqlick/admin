@@ -47,92 +47,108 @@ const DashBoardPage = () => {
     setLoading(true);
     const supabase = createClient();
 
-    for (const element of giver || []) {
-      if (element) {
-        const {
-          data: { amount_remaining },
-          error: fetchErr,
-        } = await supabase
-          .from("merge_givers")
-          .select("amount_remaining")
-          .eq("id", element.id)
-          .eq("matched", false)
-          .single();
-
-        if (fetchErr) {
-          console.error("Failed to fetch giver amount:", fetchErr.message);
-        }
-
-        if (amount_remaining < element.amount) {
-          console.warn("Insufficient amount for giver:", element);
-          continue; // Skip this giver if insufficient amount
-        }
-
-        const { error } = await supabase
-          .from("merge_givers")
-          .update({
-            matched: +amount_remaining - +element.amount === 0 ? true : false,
-            amount_remaining: amount_remaining - element.amount,
-            confirmed: true,
-          })
-          .eq("id", element.id);
-
-        if (error) console.error("Failed to update giver:", error.message);
-      } else {
-        console.warn("Skipping giver with invalid ID:", element);
-      }
-    }
-
-    const { data: rcvData, error: err } = await supabase
+    // STEP 1: Fetch receiver's data first
+    const { data: rcvData, error: rcvErr } = await supabase
       .from("merge_receivers")
       .select("amount_remaining")
       .eq("id", receiver)
       .eq("matched", false)
       .single();
 
-    if (err) console.error("Failed to update giver:", err.message);
-
-    // loop through giver amount and see if it is greater than receiver amount
-    if (rcvData.amount_remaining > totalAmt) {
-      const { error: err } = await supabase
-        .from("merge_receivers")
-        .update({
-          matched: false,
-          confirmed:true,
-          touched:true,
-          amount_remaining: rcvData.amount_remaining - totalAmt,
-        })
-        .eq("id", receiver);
-      if (err) console.error("Failed to update giver:", err.message);
-    } else if (rcvData.amount_remaining === totalAmt) {
-      const { error: err } = await supabase
-        .from("merge_receivers")
-        .update({
-          matched: true,
-          amount_remaining: 0,
-          confirmed:true,
-          touched:true,
-          status: "pending",
-        })
-        .eq("id", receiver);
-      if (err) console.error("Failed to update giver:", err.message);
-    } else {
-      toast.warning(
-        "Receiver amount is less than giver amount, please try again with a different receiver"
-      );
+    if (rcvErr || !rcvData) {
+      console.error("Failed to fetch receiver data:", rcvErr?.message);
+      toast.error("Failed to fetch receiver information");
       setLoading(false);
       return;
     }
 
-    giver.forEach(async (element) => {
-      const { error: mtErr } = await supabase.from("merge_matches").insert({
+    let receiverRemaining = rcvData.amount_remaining;
+
+    for (const element of giver || []) {
+      if (!element) {
+        console.warn("Skipping invalid giver:", element);
+        continue;
+      }
+
+      // STEP 2: Get the giver's actual remaining amount
+      const { data: giverData, error: fetchErr } = await supabase
+        .from("merge_givers")
+        .select("amount_remaining")
+        .eq("id", element.id)
+        .eq("matched", false)
+        .single();
+
+      if (fetchErr || !giverData) {
+        console.error("Failed to fetch giver:", fetchErr?.message);
+        continue;
+      }
+
+      const giverAmount = element.amount;
+      const giverRemaining = giverData.amount_remaining;
+
+      // STEP 3: Check if giver's amount fits into receiver
+      if (giverAmount > receiverRemaining) {
+        toast.warning(
+          `Giver amount (${giverAmount}) exceeds receiver remaining amount (${receiverRemaining}). Skipping.`
+        );
+        continue;
+      }
+
+      if (giverRemaining < giverAmount) {
+        console.warn("Insufficient giver amount:", element);
+        continue;
+      }
+
+      // STEP 4: Update giver
+      const { error: giverUpdateErr } = await supabase
+        .from("merge_givers")
+        .update({
+          matched: giverRemaining - giverAmount === 0,
+          amount_remaining: giverRemaining - giverAmount,
+          confirmed: true,
+        })
+        .eq("id", element.id);
+
+      if (giverUpdateErr) {
+        console.error("Failed to update giver:", giverUpdateErr.message);
+        continue;
+      }
+
+      // STEP 5: Update receiver
+      receiverRemaining -= giverAmount;
+
+      const { error: receiverUpdateErr } = await supabase
+        .from("merge_receivers")
+        .update({
+          matched: receiverRemaining === 0,
+          confirmed: true,
+          touched: true,
+          status: receiverRemaining === 0 ? "pending" : undefined,
+          amount_remaining: receiverRemaining,
+        })
+        .eq("id", receiver);
+
+      if (receiverUpdateErr) {
+        console.error("Failed to update receiver:", receiverUpdateErr.message);
+        continue;
+      }
+
+      // STEP 6: Insert merge match
+      const { error: matchErr } = await supabase.from("merge_matches").insert({
         giver_id: element.id,
         receiver_id: receiver,
-        matched_amount: element.amount,
+        matched_amount: giverAmount,
       });
-    });
+
+      if (matchErr) {
+        console.error("Failed to insert match:", matchErr.message);
+      }
+    }
+
     setMerged(true);
+    setLoading(false);
   };
+
   const totalAmt = Array.isArray(giver)
     ? giver.reduce((sum, el) => sum + parseFloat(el.amount), 0)
     : 0;

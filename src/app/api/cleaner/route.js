@@ -176,6 +176,18 @@ export async function GET(request) {
       .eq("id", users.user_id);
   }
 
+  // check if the person has been confirmed and then set the time to restart
+
+  const { data: updatedRows, error: updateError } = await supabase
+    .from("merge_givers")
+    .update({ expires_at: twentyFourHoursLater })
+    .match({ confirmed: true, matched: false })
+    .lt("expires_at", now.toISOString());
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 400 });
+  }
+
   // 2. Re-enter unmatched receivers to queue with new expiry time
   const { error: receiverQueError } = await supabase
     .from("merge_receivers")
