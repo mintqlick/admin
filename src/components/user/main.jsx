@@ -8,58 +8,6 @@ import Spinner from "../ui/spinner";
 import { toast } from "react-toastify";
 import Referral from "./referral";
 
-const transactions = [
-  {
-    id: "TXN123456",
-    date: "2024-05-29 10:00 AM",
-    type: "Commitment",
-    amount: "10 USD",
-    status: "completed",
-  },
-  {
-    id: "TXN123457",
-    date: "2024-05-28 02:30 PM",
-    type: "Recommitment",
-    amount: "15 USD",
-    status: "pending",
-  },
-  {
-    id: "TXN123458",
-    date: "2024-05-27 08:15 PM",
-    type: "Donation",
-    amount: "20 USD",
-    status: "completed",
-  },
-  {
-    id: "TXN123459",
-    date: "2024-05-26 11:45 AM",
-    type: "Pledge",
-    amount: "5 USD",
-    status: "failed",
-  },
-  {
-    id: "TXN123460",
-    date: "2024-05-25 04:00 PM",
-    type: "Commitment",
-    amount: "10 USD",
-    status: "completed",
-  },
-  {
-    id: "TXN123461",
-    date: "2024-05-24 01:30 PM",
-    type: "Recommitment",
-    amount: "15 USD",
-    status: "pending",
-  },
-  {
-    id: "TXN123462",
-    date: "2024-05-23 09:00 AM",
-    type: "Donation",
-    amount: "25 USD",
-    status: "completed",
-  },
-];
-
 const UsersPage = ({ id }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
@@ -106,6 +54,7 @@ const UsersPage = ({ id }) => {
         .single();
 
       setUserAccLoading(false);
+      console.log(error, "Ademola");
 
       setUserAcc(data);
     };
@@ -196,7 +145,6 @@ const UsersPage = ({ id }) => {
     if (id) fetchReferralsWithUsers();
   }, [id]);
 
-
   useEffect(() => {
     const executioner = async () => {
       const supabase = createClient();
@@ -242,12 +190,12 @@ const UsersPage = ({ id }) => {
     if (error) {
       console.log(error);
       toast.error(error.message);
+      return;
     }
     setBlockAccLoading(false);
     toast.success(`user ${userAcc.blocked ? "unblocked" : "blocked"}`);
     window.location.reload();
   };
-
 
   const filtered =
     dataVal &&
@@ -257,8 +205,6 @@ const UsersPage = ({ id }) => {
         (el.status === "waiting" || el.status === "pending")
       );
     });
-
-  console.log(filtered);
 
   return (
     <div className="w-full flex gap-4">
