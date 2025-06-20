@@ -220,9 +220,11 @@ const UsersPage = ({ id }) => {
           {userAcc && (
             <div className="w-full flex  items-center">
               <span className="text-3xl text-white flex justify-center items-center w-[6rem] h-[6rem] rounded-full bg-[#05132B] font-semibold">
-                {userAcc?.name.split(" ")[0][0] +
-                  "" +
-                  userAcc?.name.split(" ")[1][0]}
+                {userAcc?.name.includes(" ")
+                  ? userAcc?.name.split(" ")[0][0] +
+                    "" +
+                    userAcc?.name.split(" ")[1][0]
+                  : userAcc?.name.slice(0, 1)}
               </span>
               <span className="text-2xl font-bold text-[#05132B] ml-4">
                 <h2 className="text-3xl font-bold">{userAcc.name}</h2>
