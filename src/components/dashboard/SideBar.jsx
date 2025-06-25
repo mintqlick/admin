@@ -54,7 +54,7 @@ export default function Sidebar() {
   const CleanUp = async () => {
     setCleanLoading(true);
 
-    const result = await fetch("api/cleaner");
+    const result = await fetch("/api/cleaner");
     const values = await result.json();
     setCleanLoading(false);
     toast.success("db cleaned up");

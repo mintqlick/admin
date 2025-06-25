@@ -111,6 +111,7 @@ const SenderComponent = ({ giveCount, setGiverData }) => {
         <div className="w-3/12 flex justify-center items-center">Amount</div>
         <div className="w-2/12 text-center">Merge Amount</div>
         <div className="w-2/12 justify-center flex items-center">Status</div>
+        <div className="w-2/12 justify-center flex items-center">Type</div>
       </div>
 
       {loading ? (

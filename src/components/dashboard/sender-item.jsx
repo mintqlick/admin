@@ -9,7 +9,7 @@ const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
 
   const AddCount = () => {
     const newValue = Math.min(
-      parseFloat((count + 0.1).toFixed(1)),
+      parseFloat((count + 0.01).toFixed(2)),
       item.original_amount
     );
     setCount(newValue);
@@ -18,7 +18,7 @@ const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
 
   const reduceCount = () => {
     if (count <= 0.1) return;
-    const newValue = parseFloat((count - 0.1).toFixed(1));
+    const newValue = parseFloat((count - 0.01).toFixed(2));
     setCount(newValue);
     onCheckboxChange(item.id, checked, newValue);
   };
@@ -64,9 +64,10 @@ const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
           <input
             type="number"
             inputMode="decimal"
-            step="0.1"
+            step="0.01"
+            
             max={item?.amount_remaining}
-            min={1}
+            min={0.01}
             value={count}
             onChange={handleInputChange}
             className="w-full text-center appearance-none outline-none
@@ -86,6 +87,12 @@ const SenderItem = ({ item, onCheckboxChange, isChecked }) => {
       <div className="w-2/12 flex justify-center items-center">
         <span className="capitalize text-[#6E5801] rounded-2xl bg-[#FFF1BA] flex justify-start items-center w-[8rem] font-semibold text-[15px]">
           <Dot size={30} className="text-[#F7DC6F]" /> In Queue
+        </span>
+      </div>
+
+      <div className="w-2/12 flex justify-center items-center">
+        <span className="capitalize text-[#6E5801] rounded-2xl flex justify-start items-center w-auto font-semibold text-[15px] text-center">
+          {item?.levy ? "Levy" : "Giver"}
         </span>
       </div>
     </div>
